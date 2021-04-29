@@ -2,8 +2,6 @@ const net = require('net');
 const port = 8080;
 
 users = new Object();
-users["::ffff:50.38.61.81"] = 'Laptop';
-users["::ffff:127.0.0.1"] = 'linux.cecs';
 
 const server = new net.Server();
 
@@ -14,11 +12,18 @@ server.listen(port, function() {
 server.on('connection', function(socket) {
     console.log("Client Connected\n");
 
-//    socket.write(`Hello from the server ${users[socket.remoteAddress]}\n`);
-
     socket.on('data', function(chunk) {
-        console.log(`Data from client: ${JSON.parse(chunk)["username"]}, room ${JSON.parse(chunk)["room"]}`);
-        socket.write(`Hello from the server ${users[socket.remoteAddress]}\n`);
+        response = JSON.parse(chunk);
+        if(!("message" in response)){
+            console.log(`Adding client [${JSON.parse(chunk)["username"]}]`);
+            users[JSON.parse(chunk)["username"]] = socket;
+            socket.write(`You are connected: Users to message: `);
+            for(var key in users) 
+                socket.write(key);
+        }
+        else{
+            users[response["username"]].write(response["message"]);
+        }
 
     });
 
