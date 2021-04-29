@@ -43,7 +43,7 @@ client.on('end', function() {
 
 
 function chat(client, readline) {
-    readline.question("", (answer) => {
+    readline.question(">", (answer) => {
         if(answer !== "Quit")
         {
             parsedanswer = answer.split(":", 2);
@@ -54,7 +54,7 @@ function chat(client, readline) {
             chat(client, readline);
         }
         else{
-            client.write("Quitting");
+            console_out("Quitting");
             client.end();
             readline.close();
         }

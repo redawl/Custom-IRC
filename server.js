@@ -11,7 +11,6 @@ server.listen(port, function() {
 
 server.on('connection', function(socket) {
     console.log("Client Connected\n");
-
     socket.on('data', function(chunk) {
         response = JSON.parse(chunk);
         if(!("message" in response)){
@@ -22,12 +21,19 @@ server.on('connection', function(socket) {
                 socket.write(key);
         }
         else{
-            users[response["username"]].write(response["message"]);
+            if(response["username"] in users)
+                users[response["username"]].write(response["message"]);
+            else
+                socket.write("No user with that name");
         }
 
     });
 
     socket.on('end', function() {
+        for(var key in users){
+            if(users[key] === socket)
+                delete users[key];
+        }
         console.log("client connection closed\n");
     });
 
