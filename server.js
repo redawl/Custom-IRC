@@ -22,9 +22,9 @@ server.on('connection', function(socket) {
         }
         if(response["type"] === "message"){
             if(response["room"] in Rooms)
-                Rooms[response["room"]].broadcast(`${response["room"]}: ${response["message"]}`);
+                Rooms[response["room"]].broadcast(`${username}: ${response["message"]}`);
             else
-                socket.write("No user with that name");
+                socket.write("No room with that name");
         }
         else if(response["type"] === "addroom"){
             Rooms[response["name"]] = new Room();

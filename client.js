@@ -40,7 +40,7 @@ client.on('end', function() {
 
 
 function chat(client, readline, username) {
-    readline.question(">", (answer) => {
+    readline.question(`${username}> `, (answer) => {
         if(answer[0] !== '/')
         {
             parsedanswer = answer.split(":", 2);
@@ -48,6 +48,7 @@ function chat(client, readline, username) {
             response["type"] = "message";
             response["room"] = parsedanswer[0];
             response["message"] = parsedanswer[1];
+            response["username"] = username;
             client.write(JSON.stringify(response));
             chat(client, readline, username);
         }
