@@ -67,9 +67,26 @@ function chat(client, readline, username) {
                     response["username"] = username;
                     client.write(JSON.stringify(response));
                 }
+                else if(parsedanswer[0] === "/leaveroom"){
+                    response["type"] = "leaveroom";
+                    response["room"] = parsedanswer[1];
+                    response["username"] = username;
+                    client.write(JSON.stringify(respose));
+                }
                 else if(parsedanswer[0] === "/joinroom"){
                     response["type"] = "joinroom";
                     response["room"] = parsedanswer[1];
+                    response["username"] = username;
+                    client.write(JSON.stringify(response));
+                }
+                else if(parsedanswer[0] === "/listusers"){
+                    response["type"] = "listusers";
+                    response["room"] = parsedanswer[1];
+                    response["username"] = username;
+                    client.write(JSON.stringify(response));
+                }
+                else if(parsedanswer[0] === "/listrooms"){
+                    response["type"] = "listrooms";
                     response["username"] = username;
                     client.write(JSON.stringify(response));
                 }
