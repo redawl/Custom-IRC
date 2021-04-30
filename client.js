@@ -21,42 +21,59 @@ const client = new net.Socket();
 client.connect({port: port, host: host}, function() {
     console_out("Connected to server\n");
     readline.question('Specify username\n>', (answer) => {
+        data["type"] = "initial";
         data["username"] = answer;
+        client.write(JSON.stringify(data));
         console_out(`Set username to ${answer}`);
-        readline.question('Specify room\n> ', (answer) => {
-            data["room"] = answer;
-            console_out(`Set room to ${answer}`);
-            client.write(JSON.stringify(data));
-            chat(client, readline);
-        });
+        chat(client, readline, answer);
     });
 
 });
 
 client.on('data', function(chunk) {
-    console_out(`Recieved from server: ${chunk.toString()}`);
+    console_out(chunk.toString());
 });
 
 client.on('end', function() {
-    console_out("Ended conversation");
+    console.log("\nEnded conversation");
 });
 
 
-function chat(client, readline) {
+function chat(client, readline, username) {
     readline.question(">", (answer) => {
-        if(answer !== "Quit")
+        if(answer[0] !== '/')
         {
             parsedanswer = answer.split(":", 2);
             response = new Object();
-            response["username"] = parsedanswer[0];
+            response["type"] = "message";
+            response["room"] = parsedanswer[0];
             response["message"] = parsedanswer[1];
             client.write(JSON.stringify(response));
-            chat(client, readline);
+            chat(client, readline, username);
         }
         else{
-            console_out("Quitting");
-            client.end();
-            readline.close();
+            if(answer === "/quit"){
+                console_out("Quitting");
+                client.end();
+                readline.close();
+            }
+            else{
+                parsedanswer = answer.split(":", 2);
+                response = new Object();
+                if(parsedanswer[0] === "/addroom"){
+                    response["type"] = "addroom";
+                    response["name"] = parsedanswer[1];
+                    response["username"] = username;
+                    client.write(JSON.stringify(response));
+                }
+                else if(parsedanswer[0] === "/joinroom"){
+                    response["type"] = "joinroom";
+                    response["room"] = parsedanswer[1];
+                    response["username"] = username;
+                    client.write(JSON.stringify(response));
+                }
+                chat(client, readline, username);
+            }
         }
     });
 }
