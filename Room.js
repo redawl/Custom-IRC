@@ -5,7 +5,7 @@ module.exports = class Room{
     }
 
     remove_client(name){
-        delete this.clients[name];
+        if(name in this.clients) delete this.clients[name];
     }
 
     list_clients(){

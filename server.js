@@ -20,30 +20,39 @@ server.on('connection', function(socket) {
             users[username] = socket;
             socket.write(`You are connected`);
         }
-        if(response["type"] === "message"){
-            if(response["room"] in Rooms)
+        else if(response["type"] === "message"){
+            if(response["room"] in Rooms){
                 Rooms[response["room"]].broadcast(`${username}: ${response["message"]}`);
-            else
+            console.log(`Message sent to ${response["room"]}`);    
+            }
+            else{
                 socket.write("No room with that name");
+                console.log("Message sent to invalid room");
+            }
         }
         else if(response["type"] === "addroom"){
             Rooms[response["name"]] = new Room();
             socket.write(`Added room ${response["name"]}`);
+            console.log(`Added room ${response["name"]}`);
         }
         else if(response["type"] === "leaveroom"){
-            Rooms[response["room"]].remove_client(response["username"]);
-            Rooms[response["room"]].broadcast(`${response["username"]} has left the chat`);
+            to_leave = Rooms[response["room"]];
+            to_leave.remove_client(response["username"]);
+            to_leave.broadcast(`${response["username"]} has left the chat`);
+            console.log(`${username} left room ${response["room"]}`);
         }
         else if(response["type"] === "joinroom"){
-            Rooms[response["room"]].add_client(response["username"], users[response["username"]]);
-            Rooms[response["room"]].broadcast(`${response["username"]} has joined the chat`);
+            to_join = Rooms[response["room"]];
+            to_join.add_client(response["username"], users[response["username"]]);
+            to_join.broadcast(`${response["username"]} has joined the chat`);
+            console.log(`${username} joined room ${response["room"]}`);
         }
         else if(response["type"] === "listusers"){
-            socket.write(`== Users in ${response["room"]}==\n`);
+            socket.write(`== Users in ${response["room"]}==`);
             socket.write(Rooms[response["room"]].list_clients());
         }
         else if(response["type"] === "listrooms"){
-            socket.write("== Rooms ==\n");
+            socket.write("== Rooms ==");
             for(var key in Rooms)
                 socket.write(key + "\n");
         }
@@ -51,7 +60,7 @@ server.on('connection', function(socket) {
     });
 
     socket.on('end', function() {
-        //TODO:delete user from room 
+        for(var room in Rooms) Rooms[room].remove_client(username);
         delete users[username];
         console.log("client connection closed\n");
     });

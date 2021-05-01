@@ -71,7 +71,7 @@ function chat(client, readline, username) {
                     response["type"] = "leaveroom";
                     response["room"] = parsedanswer[1];
                     response["username"] = username;
-                    client.write(JSON.stringify(respose));
+                    client.write(JSON.stringify(response));
                 }
                 else if(parsedanswer[0] === "/joinroom"){
                     response["type"] = "joinroom";
@@ -89,6 +89,16 @@ function chat(client, readline, username) {
                     response["type"] = "listrooms";
                     response["username"] = username;
                     client.write(JSON.stringify(response));
+                }
+                else if(parsedanswer[0] === "/help"){
+                    console_out("== OPTIONS ==\n" + 
+                    "/addroom:ROOM   > add room ROOM\n" + 
+                    "/joinroom:ROOM  > join room ROOM\n" + 
+                    "/listrooms      > list available rooms\n" + 
+                    "/listusers:ROOM > list users in room ROOM\n" + 
+                    "/quit           > quit application\n" + 
+                    "ROOM:MESSAGE    > send message MESSAGE to room ROOM\n" +
+                    "/help           > display this help menu");
                 }
                 chat(client, readline, username);
             }
