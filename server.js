@@ -1,71 +1,85 @@
 const net = require('net');
 const Room = require('./Room');
+
 const port = 8080;
 
-users = new Object();
-Rooms = new Object();
+const users = {};
+const Rooms = {};
 const server = new net.Server();
-
-server.listen(port, function() {
-    console.log("Server listening\n");
+let username = '';
+server.listen(port, () => {
+    console.log('Server listening\n');
 });
 
-server.on('connection', function(socket) {
-    console.log("Client Connected\n");
-    socket.on('data', function(chunk) {
-        response = JSON.parse(chunk);
-        username = response["username"];
-        if(response["type"] === "initial"){
+server.on('connection', (socket) => {
+    let response = {};
+    console.log('Client Connected\n');
+    socket.on('data', (data) => {
+        try {
+            response = JSON.parse(data);
+        } catch (e) {
+            console.log('Unexpected input from socket. input: '
+            + `${data}`);
+            return;
+        }
+        username = response.username;
+        if (response.type === 'initial') {
             console.log(`Adding client [${username}]`);
             users[username] = socket;
-            socket.write(`You are connected`);
-        }
-        else if(response["type"] === "message"){
-            if(response["room"] in Rooms){
-                Rooms[response["room"]].broadcast(`${username}: ${response["message"]}`);
-            console.log(`Message sent to ${response["room"]}`);    
+            socket.write('You are connected');
+        } else if (response.type === 'message') {
+            if (response.room in Rooms) {
+                Rooms[response.room].broadcast(`${username}: ${response.message}`);
+                console.log(`Message sent to ${response.room}`);
+            } else {
+                socket.write('No room with that name');
+                console.log('Message sent to invalid room');
             }
-            else{
-                socket.write("No room with that name");
-                console.log("Message sent to invalid room");
+        } else if (response.type === 'addroom') {
+            Rooms[response.name] = new Room();
+            socket.write(`Added room ${response.name}`);
+            console.log(`Added room ${response.name}`);
+        } else if (response.type === 'leaveroom') {
+            if (response.room in Rooms) {
+                const toLeave = Rooms[response.room];
+                toLeave.removeClient(response.username);
+                toLeave.broadcast(`${response.username} has left the chat`);
+                socket.write(`Left room ${response.room}`);
+                console.log(`${username} left room ${response.room}`);
+            } else {
+                socket.write(`No room ${response.room}`);
+                console.log('Leave room failed!');
             }
+        } else if (response.type === 'joinroom') {
+            if (response.room in Rooms) {
+                const toJoin = Rooms[response.room];
+                toJoin.addClient(response.username, users[response.username]);
+                toJoin.broadcast(`${response.username} has joined the chat`);
+                console.log(`${username} joined room ${response.room}`);
+            } else {
+                socket.write(`Room ${response.room} does not exist!`);
+                console.log('Add room failed!');
+            }
+        } else if (response.type === 'listusers') {
+            socket.write(`== Users in ${response.room}==`);
+            socket.write(Rooms[response.room].listClients());
+        } else if (response.type === 'listrooms') {
+            socket.write('== Rooms ==');
+            Object.keys(Rooms).forEach((key) => {
+                socket.write(`${key}\n`);
+            });
         }
-        else if(response["type"] === "addroom"){
-            Rooms[response["name"]] = new Room();
-            socket.write(`Added room ${response["name"]}`);
-            console.log(`Added room ${response["name"]}`);
-        }
-        else if(response["type"] === "leaveroom"){
-            to_leave = Rooms[response["room"]];
-            to_leave.remove_client(response["username"]);
-            to_leave.broadcast(`${response["username"]} has left the chat`);
-            console.log(`${username} left room ${response["room"]}`);
-        }
-        else if(response["type"] === "joinroom"){
-            to_join = Rooms[response["room"]];
-            to_join.add_client(response["username"], users[response["username"]]);
-            to_join.broadcast(`${response["username"]} has joined the chat`);
-            console.log(`${username} joined room ${response["room"]}`);
-        }
-        else if(response["type"] === "listusers"){
-            socket.write(`== Users in ${response["room"]}==`);
-            socket.write(Rooms[response["room"]].list_clients());
-        }
-        else if(response["type"] === "listrooms"){
-            socket.write("== Rooms ==");
-            for(var key in Rooms)
-                socket.write(key + "\n");
-        }
-
     });
 
-    socket.on('end', function() {
-        for(var room in Rooms) Rooms[room].remove_client(username);
+    socket.on('end', () => {
+        Object.keys(Rooms).forEach((room) => {
+            Rooms[room].removeClient(username);
+        });
         delete users[username];
-        console.log("client connection closed\n");
+        console.log('client connection closed\n');
     });
 
-    socket.on('error', function(err) {
+    socket.on('error', (err) => {
         console.log(`Error: ${err}`);
     });
 });

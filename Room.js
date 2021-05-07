@@ -1,25 +1,25 @@
-module.exports = class Room{
-    constructor(){ this.clients = new Object(); }
-    add_client(name, socket){
+module.exports = class Room {
+    constructor() { this.clients = []; }
+
+    addClient(name, socket) {
         this.clients[name] = socket;
     }
 
-    remove_client(name){
-        if(name in this.clients) delete this.clients[name];
+    removeClient(name) {
+        if (name in this.clients) delete this.clients[name];
     }
 
-    list_clients(){
-        let ret = "";
-        for(var client in this.clients){
-            ret = ret + client + "\n";
-        }
+    listClients() {
+        let ret = '';
+        Object.keys(this.clients).forEach((client) => {
+            ret += `${client}\n`;
+        });
         return ret;
     }
 
-    broadcast(message){
-        for(var client in this.clients){
+    broadcast(message) {
+        Object.keys(this.clients).forEach((client) => {
             this.clients[client].write(message);
-        }
+        });
     }
-}
-
+};
