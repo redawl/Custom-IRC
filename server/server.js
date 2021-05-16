@@ -1,5 +1,6 @@
 const net = require('net');
 const responseBuilder = require('./utils.js');
+const logger = require('./logger.js');
 
 const port = 8080;
 
@@ -8,17 +9,17 @@ const Rooms = {};
 const server = new net.Server();
 let username = '';
 server.listen(port, () => {
-    console.log('Server listening\n');
+    logger(`Server listening on port ${port}\n`);
 });
 
 server.on('connection', (socket) => {
     let response = {};
-    console.log('Client Connected\n');
+    logger('Client Connected\n');
     socket.on('data', (data) => {
         try {
             response = JSON.parse(data);
         } catch (e) {
-            console.log(`Unexpected input from socket. input: ${data}`);
+            logger(`Unexpected input from socket. input: ${data}`);
             return;
         }
         username = response.username;
@@ -34,6 +35,6 @@ server.on('connection', (socket) => {
     });
 
     socket.on('error', (err) => {
-        console.log(`Error: ${err}`);
+        logger(`Error: ${err}`);
     });
 });
