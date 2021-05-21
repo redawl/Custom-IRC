@@ -49,8 +49,13 @@ function joinroomBuilder(response, Rooms, users, socket) {
 }
 
 function listusersBuilder(response, Rooms, users, socket) {
-    socket.write(`== Users in ${response.room} ==`);
-    socket.write(Rooms[response.room].listClients());
+    if (response.room in Rooms) {
+        socket.write(`== Users in ${response.room} ==`);
+        socket.write(Rooms[response.room].listClients());
+    } else {
+        logger(`Listing requested for invalid room ${response.room}\n`);
+        socket.write(`There is no room ${response.room}!\n`);
+    }
 }
 
 function listroomsBuilder(response, Rooms, users, socket) {
