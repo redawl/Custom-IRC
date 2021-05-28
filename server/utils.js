@@ -1,64 +1,65 @@
 const Room = require('./Room.js');
 const logger = require('./logger.js');
 
-function initialBuilder(response, Rooms, users, socket) {
-    logger(`adding client [${response.username}]`);
+function initialBuilder(response, Rooms, users, socket, readline) {
+    logger(readline, `adding client [${response.username}]`);
     users[response.username] = socket;
     socket.write('You are connected');
 }
 
-function messageBuilder(response, Rooms, users, socket) {
+function messageBuilder(response, Rooms, users, socket, readline) {
     if (response.room in Rooms) {
         Rooms[response.room].broadcast(`${response.username}: ${response.message}`);
-        logger(`Message sent to ${response.room}`);
+        logger(readline, `Message sent to ${response.room}`);
     } else {
         socket.write('No room with that name');
-        logger('Message sent to invalid room');
+        logger(readline, 'Message sent to invalid room');
     }
 }
 
-function addroomBuilder(response, Rooms, users, socket) {
+function addroomBuilder(response, Rooms, users, socket, readline) {
     Rooms[response.name] = new Room();
     socket.write(`Added room ${response.name}`);
-    logger(`Added room ${response.name}`);
+    logger(readline, `Added room ${response.name}`);
 }
 
-function leaveroomBuilder(response, Rooms, users, socket) {
+function leaveroomBuilder(response, Rooms, users, socket, readline) {
     if (response.room in Rooms) {
         const toLeave = Rooms[response.room];
         toLeave.removeClient(response.username);
         toLeave.broadcast(`${response.username} has left the chat`);
         socket.write(`Left room ${response.room}`);
-        logger(`${response.username} has left room ${response.room}`);
+        logger(readline, `${response.username} has left room ${response.room}`);
     } else {
         socket.write(`No room ${response.room}`);
-        logger('Leave room failed!');
+        logger(readline, 'Leave room failed!');
     }
 }
 
-function joinroomBuilder(response, Rooms, users, socket) {
+function joinroomBuilder(response, Rooms, users, socket, readline) {
     if (response.room in Rooms) {
         const toJoin = Rooms[response.room];
         toJoin.addClient(response.username, users[response.username]);
         toJoin.broadcast(`${response.username} has joined the chat`);
-        logger(`${response.username} joined room ${response.room}`);
+        logger(readline, `${response.username} joined room ${response.room}`);
     } else {
         socket.write(`Room ${response.room} does not exist!`);
-        logger('Add room failed!');
+        logger(readline, 'Add room failed!');
     }
 }
 
-function listusersBuilder(response, Rooms, users, socket) {
+function listusersBuilder(response, Rooms, users, socket, readline) {
     if (response.room in Rooms) {
         socket.write(`== Users in ${response.room} ==`);
         socket.write(Rooms[response.room].listClients());
     } else {
-        logger(`Listing requested for invalid room ${response.room}\n`);
+        logger(readline, `Listing requested for invalid room ${response.room}\n`);
         socket.write(`There is no room ${response.room}!\n`);
     }
 }
 
-function listroomsBuilder(response, Rooms, users, socket) {
+function listroomsBuilder(response, Rooms, users, socket, readline) {
+    logger(readline, 'Room list requested\n');
     socket.write('== Rooms ==');
     Object.keys(Rooms).forEach((key) => {
         socket.write(`${key}\n`);

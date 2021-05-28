@@ -86,5 +86,5 @@ client.on('data', (chunk) => {
 });
 
 client.on('end', () => {
-    console.log('\nDisconnected from server');
+    consoleOut(readline, '\nDisconnected from server');
 });
