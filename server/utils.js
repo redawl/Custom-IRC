@@ -8,19 +8,27 @@ function initialBuilder(response, Rooms, users, socket, readline) {
 }
 
 function messageBuilder(response, Rooms, users, socket, readline) {
-    if (response.room in Rooms) {
+    if (response.room in Rooms && Rooms[response.room].checkUser(response.username)) {
         Rooms[response.room].broadcast(`${response.username}: ${response.message}`);
         logger(readline, `Message sent to ${response.room}`);
-    } else {
+    } else if (!(response.room in Rooms)) {
         socket.write('No room with that name');
         logger(readline, 'Message sent to invalid room');
+    } else {
+        socket.write(`Not in Room ${response.room}! Use /joinroom:${response.room} to join\n`);
+        logger(readline, 'User not in that room\n');
     }
 }
 
 function addroomBuilder(response, Rooms, users, socket, readline) {
-    Rooms[response.name] = new Room();
-    socket.write(`Added room ${response.name}`);
-    logger(readline, `Added room ${response.name}`);
+    if (!(response.name in Rooms)) {
+        Rooms[response.name] = new Room();
+        socket.write(`Added room ${response.name}`);
+        logger(readline, `Added room ${response.name}`);
+    } else {
+        socket.write(`${response.name} alread in use. Please choose another name\n`);
+        logger(readline, 'Room name already in use\n');
+    }
 }
 
 function leaveroomBuilder(response, Rooms, users, socket, readline) {

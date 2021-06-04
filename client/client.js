@@ -6,7 +6,8 @@ const readline = require('readline').createInterface({
 const consoleOut = require('../commonutils');
 
 const port = 8080;
-const host = 'localhost';
+
+const host = process.argv[2];
 
 const client = new net.Socket();
 

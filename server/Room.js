@@ -5,6 +5,8 @@ module.exports = class Room {
         this.clients[name] = socket;
     }
 
+    checkUser(user) { if (user in this.clients) return true; return false; }
+
     removeClient(name) {
         if (name in this.clients) delete this.clients[name];
     }
